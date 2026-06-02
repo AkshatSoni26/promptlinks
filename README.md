@@ -1,8 +1,10 @@
 # PromptLinks 🚀
 
-`promptlinks` is a ultra-lightweight Python utility designed to optimize the context windows of Large Language Models (LLMs) by compressing long, repetitive, or noisy Markdown URLs into highly compact numeric short codes (e.g., `[Label](=1#3)`).
+IMPORTANT: This repository is a lightweight demo created for a blog post — it is NOT a published library or a production-ready package. The code and datasets are intended for demonstration and experimentation only. Do not use embedded secrets; all keys should be provided via environment variables or secret managers.
 
-It features built-in bijective mapping, an integrated **LLM hallucination detection audit**, and an extensible architecture to gracefully handle model generation anomalies.
+`promptlinks` is an ultra-lightweight Python demo that shows how long, repetitive, or noisy Markdown URLs can be compressed into compact numeric short codes (e.g., `[Label](=1#3)`).
+
+It demonstrates bijective mapping, a simple hallucination-detection audit for generated text, and an extensible decoding approach suitable for instructional purposes.
 
 ---
 
@@ -36,20 +38,19 @@ Once the LLM generates its response utilizing these highly compressed short code
 
 ---
 
-## 📦 Installation
+## 📦 Installation (Demo only)
 
-This project is built and optimized for speed using the `uv` package manager.
-
-Clone the repository and install the runtime environment:
+This repository is intended for demo and blog usage. It is not packaged for distribution. To run the examples locally, clone the repo and install dependencies in a virtual environment. Do NOT commit API keys to the repository — use environment variables or your platform's secret store.
 
 ```bash
 git clone https://github.com/yourusername/promptlinks.git
 cd promptlinks
-
-# Sync dependencies using uv
-uv pip install -r pyproject.toml
-
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1  # PowerShell on Windows
+python -m pip install -r pyproject.toml
 ```
+
+If you only want to view the demonstration without running LLM calls, open `demo.ipynb` and skip cells that require API access.
 
 ---
 
@@ -57,38 +58,31 @@ uv pip install -r pyproject.toml
 
 A fully functional, cell-by-cell demonstration using `litellm` and Google AI Studio's **Gemini 3.5 Flash** is available in the `demo.ipynb` notebook.
 
-### Basic Usage
+### Basic Usage (demo snippet)
+
+The following is a minimal demo of how the short-coding flow works. This is for illustrative purposes only — do not ship hard-coded secrets or rely on this as a production library.
 
 ```python
-from url_shortener import UriShortener
+from uri_shortener import UriShortener
 
 shortener = UriShortener()
 
-# 1. Compress raw prompt data containing heavy links
+# Compress a prompt containing a long link (demo only)
 raw_prompt = "Review the guidelines in [TOS Article 4](/legal/terms-of-service#article-4.liability-limitations)."
 compressed_prompt = shortener.encode_text(raw_prompt)
-print(compressed_prompt)
-# Output: "Review the guidelines in [TOS Article 4](=1#1)."
+print(compressed_prompt)  # e.g. "Review the guidelines in [TOS Article 4](=1#1)."
 
-# 2. Feed compressed_prompt to your LLM pipeline ...
-# Assume the LLM returns: "Per [TOS Article 4](=1#1), liability is capped."
-llm_response = "Per [TOS Article 4](=1#1), liability is capped."
-
-# 3. Check for structural hallucinations
-hallucinations = shortener.find_hallucinated_codes(llm_response)
-if not hallucinations:
-    # 4. Reconstruct full URLs for your application frontend
-    final_output = shortener.decode_text(llm_response)
-    print(final_output)
-    # Output: "Per [TOS Article 4](/legal/terms-of-service#article-4.liability-limitations), liability is capped."
-
+# After running through an LLM pipeline that references short codes,
+# decode back into full URLs for your frontend (verify outputs first)
+final_output = shortener.decode_text(compressed_prompt)
+print(final_output)
 ```
 
 ---
 
 ## 📈 Scalability Metrics
 
-While savings on simple prompts look modest, the token reduction scales non-linearly as your context size increases. In dense RAG systems retrieving up to 40 complex markdown links, `promptlinks` consistently demonstrates massive token savings:
+While savings on simple prompts look modest, the token-reduction behavior shown here is illustrative. The numbers below are from synthetic examples in the demo and are meant to communicate the shape of the savings rather than guarantee production results. Evaluate performance in your own workload before making architectural decisions.
 
 | Metric | Raw Context | PromptLinks Compressed | Optimization Gain |
 | --- | --- | --- | --- |
@@ -99,9 +93,9 @@ While savings on simple prompts look modest, the token reduction scales non-line
 
 ## 🔧 Extensibility
 
-LLMs executing under high creative temperatures occasionally emit minor syntax or formatting anomalies (e.g., outputting `[label]=1#1` instead of matching standard Markdown brackets).
+LLMs executing under high creative temperatures can emit syntax or formatting anomalies. The `UriShortener` implementation included in this demo is intentionally minimal and intended to illustrate concepts; it is not hardened for production edge cases.
 
-The `UriShortener` class intentionally exposes an open structure. You can easily wrap `decode_text()` with domain-specific regular expressions to sanitize or heal anomalous structures prior to decoding:
+Before using any of these techniques in production, add robust validation, unit tests, and domain-specific sanitization to ensure safety and correctness. The example below demonstrates a simple heuristic for repairing some common bracket-truncation patterns, but it is not exhaustive.
 
 ```python
 import re
@@ -120,3 +114,21 @@ def custom_extended_decoder(text: str, shortener_instance: UriShortener) -> str:
 ## 📄 License
 
 This project is open-source and available under the [MIT License](https://www.google.com/search?q=LICENSE).
+
+## 🔒 Security & Secrets (Important)
+
+- This repository is a demo for a blog post — do not commit API keys, credentials, or other secrets to the repository.
+- Use environment variables, secret managers, or CI secret stores for runtime credentials. The `demo.ipynb` shows an interactive prompt for setting `GEMINI_API_KEY`; remove any hard-coded keys before publishing or sharing.
+- If secrets are accidentally committed, rotate them immediately and follow the steps in this repo to scrub history or contact your provider and Git hosting support.
+
+## Contributing & Contact
+
+- Contributions, ideas, and suggestions are very welcome — this demo was created for a blog post and benefits from community feedback.
+- To contribute:
+  - Fork the repo and create a feature branch: `git checkout -b my-feature`.
+  - Add tests for new functionality and document changes.
+  - Open a pull request describing the motivation and changes.
+- For issues, feature requests, or to share ideas, please open a GitHub Issue on this repository.
+- If you prefer direct contact, add your preferred contact method in a new Issue and I'll follow up.
+
+Thank you for taking an interest — contributions make demos like this more useful for everyone.
